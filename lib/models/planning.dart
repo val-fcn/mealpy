@@ -1,10 +1,33 @@
 import 'package:flutter/material.dart';
 
 class Planning {
-  Planning({required this.id, required this.name, required this.dateRange});
+  Planning(
+      {required this.id,
+      required this.name,
+      required this.dateRange,
+      required this.days});
   final String id;
   final String name;
   final DateTimeRange dateRange;
+  final List<PlanningDay> days;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'dateRange': dateRange,
+      'days': days,
+    };
+  }
+
+  static Planning fromJson(Map<String, dynamic> json) {
+    return Planning(
+      id: json['id'],
+      name: json['name'],
+      dateRange: json['dateRange'],
+      days: json['days'],
+    );
+  }
 }
 
 class PlanningDay {
