@@ -23,9 +23,17 @@ class _NewPlanningState extends State<NewPlanning> {
           DateTimeRange(
             start: DateTime.now(),
             end: DateTime.now().add(
-              const Duration(days: 7),
+              const Duration(days: 4),
             ),
           ),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+              colorScheme:
+                  ColorScheme.fromSeed(seedColor: AppTheme.primaryColor)),
+          child: child!,
+        );
+      },
     );
 
     if (picked != null) {

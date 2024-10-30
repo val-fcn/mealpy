@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../themes/theme.dart';
 import '../widgets/new_planning.dart';
+import '../widgets/planning_list.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -30,7 +31,9 @@ class _HomeScreenState extends State<HomeScreen> {
           )
         ],
       ),
-      body: const Center(child: Text('Bienvenue sur l\'application Mealpy !')),
+      body: const Center(
+        child: PlanningList(),
+      ),
     );
   }
 }

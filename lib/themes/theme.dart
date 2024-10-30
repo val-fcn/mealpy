@@ -1,11 +1,8 @@
 import "package:flutter/material.dart";
 
 class AppTheme {
-  static const Color backgroundColor = Color(0xFFDBD3D3);
-  static const Color headlineColor = Color(0xFF091057);
-  static const Color paragraphColor = Color(0xFF091057);
-  static const Color buttonColor = Color(0xFF024CAA);
-  static const Color buttonTextColor = Color(0xFFDBD3D3);
+  static const Color backgroundColor = Color(0xFFFFFFFF);
+  static const Color primaryColor = Color(0xFF6A6DB0);
 
   static final ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
@@ -13,25 +10,25 @@ class AppTheme {
     scaffoldBackgroundColor: backgroundColor,
     textTheme: const TextTheme(
       displayLarge: TextStyle(
-        color: headlineColor,
+        color: primaryColor,
         fontSize: 24,
         fontWeight: FontWeight.bold,
       ),
       bodyLarge: TextStyle(
-        color: paragraphColor,
+        color: primaryColor,
         fontSize: 16,
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        foregroundColor: buttonTextColor,
-        backgroundColor: buttonColor,
+        foregroundColor: backgroundColor,
+        backgroundColor: primaryColor,
       ),
     ),
     appBarTheme: const AppBarTheme(
-      backgroundColor: backgroundColor,
+      backgroundColor: primaryColor,
       titleTextStyle: TextStyle(
-        color: headlineColor,
+        color: backgroundColor,
         fontSize: 20,
       ),
     ),
