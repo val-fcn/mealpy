@@ -1,8 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
-import '../data/planning_dummy_data.dart';
-import '../models/planning.dart';
-import 'new_planning.dart';
+import 'package:intl/intl.dart';
+import '../models/menu.dart';
+import '../services/menu_service.dart';
+import '../themes/theme.dart';
 
 class PlanningList extends StatefulWidget {
   const PlanningList({super.key});
@@ -12,149 +13,220 @@ class PlanningList extends StatefulWidget {
 }
 
 class _PlanningListState extends State<PlanningList> {
-  late List<Planning> _plannings;
-  final ScrollController _scrollController = ScrollController();
-  late PlanningDay _selectedDay;
+  final MenuService _menuService = MenuService();
+  late DateTime _selectedDay;
+  List<Menu> _menus = [];
+  Menu? _currentMenu;
+  bool _isLoading = true;
+
+  String get _userId => FirebaseAuth.instance.currentUser?.uid ?? '';
 
   @override
   void initState() {
     super.initState();
-    _plannings = PlanningDummyData.plannings;
-    _selectedDay = _plannings[0].days[0];
+    _selectedDay = DateTime.now();
+    _loadMenu();
+    _loadMenus();
   }
 
-  List<DateTime> _getDaysInRange() {
-    if (_plannings.isEmpty) return [];
+  Future<void> _loadMenus() async {
+    _menus = await _menuService.getMenusForDateRange(
+      _userId,
+      _getCurrentWeekDays().first,
+      _getCurrentWeekDays().last,
+    );
+  }
 
-    final firstPlanning = _plannings[0];
-    final List<DateTime> days = [];
-
-    for (var day in firstPlanning.days) {
-      days.add(day.date);
+  Future<void> _loadMenu() async {
+    if (_userId.isEmpty) {
+      print('Pas d\'utilisateur connecté');
+      setState(() => _isLoading = false);
+      return;
     }
 
-    return days;
+    setState(() => _isLoading = true);
+    try {
+      // Vérification de l'authentification
+      final currentUser = FirebaseAuth.instance.currentUser;
+
+      final menu = await _menuService.getMenuForDate(_userId, _selectedDay);
+
+      setState(() {
+        _currentMenu = menu;
+        _isLoading = false;
+      });
+    } catch (e, stackTrace) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e')),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget content;
-    if (_plannings.isEmpty) {
-      content = Center(
+    return Column(
+      children: [
+        _buildDateSlider(),
+        Expanded(
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _buildMenuContent(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateSlider() {
+    return Container(
+      height: 100,
+      color: AppTheme.primaryColor.withOpacity(0.3),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: 7,
+        itemBuilder: (context, index) {
+          final weekDays = _getCurrentWeekDays();
+          final day = weekDays[index];
+          final isSelected = day.year == _selectedDay.year &&
+              day.month == _selectedDay.month &&
+              day.day == _selectedDay.day;
+
+          return GestureDetector(
+            onTap: () async {
+              setState(() {
+                _selectedDay = day;
+              });
+              await _loadMenu(); // Charger le menu du jour sélectionné
+            },
+            child: Container(
+              width: MediaQuery.of(context).size.width / 7,
+              margin: const EdgeInsets.symmetric(horizontal: 1),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppTheme.primaryColor.withOpacity(0.2)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                      border: isSelected
+                          ? Border.all(color: AppTheme.primaryColor)
+                          : null,
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          day.day.toString(),
+                          style: TextStyle(
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: AppTheme.primaryColor,
+                          ),
+                        ),
+                        Text(
+                          DateFormat('EEE', 'fr_FR').format(day),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.primaryColor,
+                          ),
+                        ),
+                        if (_menus.any((menu) =>
+                            menu.date.day == day.day &&
+                            menu.date.month == day.month &&
+                            menu.date.year == day.year))
+                          const Icon(Icons.circle,
+                              size: 8, color: AppTheme.primaryColor),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildMenuContent() {
+    if (_currentMenu == null) {
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('No plannings found'),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => const NewPlanning()),
-                );
-              },
-              label: const Text('Add a planning'),
-              icon: const Icon(Icons.add),
+            const Text('Aucun menu prévu pour ce jour'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {},
+              child: const Text('Créer un menu'),
             ),
           ],
         ),
       );
-    } else {
-      content = Column(
-        children: [
-          Container(
-            height: 80,
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: ListView.builder(
-              controller: _scrollController,
-              scrollDirection: Axis.horizontal,
-              itemCount: _getDaysInRange().length,
-              itemBuilder: (context, index) {
-                final day = _getDaysInRange()[index];
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedDay = _plannings[0].days[index];
-                    });
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width / 7,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 4),
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: _selectedDay.date.day == day.day
-                                ? Colors.purple.withOpacity(0.1)
-                                : Colors.grey.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: Text(
-                              day.day.toString(),
-                              style: const TextStyle(
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          // Liste des menus
-          Expanded(
-            child: ListView.builder(
-              itemCount: _selectedDay.meals.length,
-              itemBuilder: (context, index) {
-                final planning = _selectedDay;
-                return Card(
-                  margin: const EdgeInsets.all(8),
-                  child: ListTile(
-                    title: Text(planning.meals[index].name),
-                    trailing: const Icon(Icons.arrow_forward_ios),
-                    onTap: () {
-                      // TODO : Navigation vers le détail du menu
-                    },
-                  ),
-                );
-              },
-            ),
-          ),
-          Align(
-            alignment: Alignment.bottomRight,
-            child: Container(
-              width: 160,
-              margin: const EdgeInsets.all(16),
-              child: FloatingActionButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (context) => const NewPlanning()),
-                  );
-                },
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.add),
-                    SizedBox(width: 8),
-                    Text('Add a planning'),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
     }
 
-    return Scaffold(
-      body: content,
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        ..._buildMealsByType(MealType.breakfast, 'Petit déjeuner'),
+        ..._buildMealsByType(MealType.lunch, 'Déjeuner'),
+        ..._buildMealsByType(MealType.snack, 'Goûter'),
+        ..._buildMealsByType(MealType.dinner, 'Dîner'),
+        ..._buildMealsByType(MealType.dessert, 'Dessert'),
+      ],
     );
+  }
+
+  List<Widget> _buildMealsByType(MealType type, String title) {
+    final meals =
+        _currentMenu?.meals.where((meal) => meal.type == type).toList() ?? [];
+
+    if (meals.isEmpty) return [];
+
+    return [
+      Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      ...meals.expand((meal) => meal.recipes.map(
+            (recipe) => Card(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: ListTile(
+                leading: recipe.imageUrl != null
+                    ? CircleAvatar(
+                        backgroundImage: NetworkImage(recipe.imageUrl!),
+                      )
+                    : const CircleAvatar(
+                        child: Icon(Icons.restaurant),
+                      ),
+                title: Text(recipe.name),
+                subtitle: Text(
+                  '${recipe.preparationTime + recipe.cookingTime} min • ${recipe.servings} pers.',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  // Navigation vers le détail de la recette
+                },
+              ),
+            ),
+          )),
+    ];
+  }
+
+  List<DateTime> _getCurrentWeekDays() {
+    final now = _selectedDay;
+    final monday = now.subtract(Duration(days: now.weekday - 1));
+    return List.generate(7, (index) => monday.add(Duration(days: index)));
   }
 }

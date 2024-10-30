@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../services/auth_services.dart';
 import '../themes/theme.dart';
-import '../widgets/new_planning.dart';
 import '../widgets/planning_list.dart';
 import '../widgets/shopping_list.dart';
 import '../widgets/tabs.dart';
@@ -21,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
+    _tabController = TabController(length: 1, vsync: this, initialIndex: 0);
     _tabController.addListener(() {
       setState(() {}); // Force le rebuild quand l'onglet change
     });
@@ -35,58 +34,40 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      bottomNavigationBar: const Tabs(),
-      appBar: AppBar(
-        actions: [
-          IconButton(
-            onPressed: AuthServices().signOut,
-            icon: const Icon(
-              Icons.logout,
-              color: Colors.red,
-            ),
-          ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: <Widget>[
-            Tab(
+    return SafeArea(
+      child: Scaffold(
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: 0,
+          onTap: (index) {
+            setState(() {
+              _tabController.index = index;
+            });
+          },
+          backgroundColor: Colors.white,
+          items: const [
+            BottomNavigationBarItem(
               icon: Icon(
-                _tabController.index == 0
-                    ? Icons.calendar_month
-                    : Icons.calendar_month_outlined,
-                color: Colors.white,
+                Icons.home,
+                color: AppTheme.primaryColor,
               ),
-              child: const Text(
-                'Meals plan',
-                style: TextStyle(color: Colors.white),
-              ),
+              label: 'Home',
             ),
-            Tab(
+            BottomNavigationBarItem(
               icon: Icon(
-                _tabController.index == 1
-                    ? Icons.shopping_cart
-                    : Icons.shopping_cart_outlined,
-                color: Colors.white,
+                Icons.shopping_cart,
+                color: AppTheme.primaryColor,
               ),
-              child: const Text(
-                'Shopping list',
-                style: TextStyle(color: Colors.white),
-              ),
+              label: 'Shopping list',
             ),
           ],
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: const <Widget>[
-          Center(
-            child: PlanningList(),
-          ),
-          Center(
-            child: ShoppingList(),
-          ),
-        ],
+        body: TabBarView(
+          controller: _tabController,
+          children: const <Widget>[
+            PlanningList(),
+            //ShoppingList(),
+          ],
+        ),
       ),
     );
   }

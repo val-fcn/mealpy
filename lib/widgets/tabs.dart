@@ -40,10 +40,10 @@ class _TabsState extends State<Tabs> {
         ),
         BottomNavigationBarItem(
           icon: Icon(
-            Icons.person,
+            Icons.shopping_cart,
             color: AppTheme.primaryColor,
           ),
-          label: 'Profile',
+          label: 'Shopping list',
         ),
       ],
     );
