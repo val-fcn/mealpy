@@ -95,69 +95,20 @@ class MenuService {
     try {
       final normalizedDate = _normalizeDate(date);
 
-      print('Recherche avec les paramètres suivants:'); // Debug
-      print('userId: $userId');
-      print('normalizedDate: $normalizedDate');
-
-      // Modification de la requête pour utiliser l'index correctement
       final QuerySnapshot querySnapshot = await _menusCollection
           .where('userId', isEqualTo: userId)
           .where('normalizedDate', isEqualTo: normalizedDate)
           .limit(1) // Limite à 1 résultat
           .get();
 
-      print('Documents trouvés: ${querySnapshot.docs.length}'); // Debug
-
       if (querySnapshot.docs.isNotEmpty) {
         final data = querySnapshot.docs.first.data() as Map<String, dynamic>;
-        print('Document trouvé: $data'); // Debug
         return Menu.fromJson(data);
       }
 
-      print('Aucun menu trouvé pour cette date'); // Debug
       return null;
-    } catch (e, stackTrace) {
-      print('Erreur complète:'); // Debug
-      print(e);
-      print(stackTrace);
+    } catch (e) {
       throw Exception('Erreur lors de la récupération du menu du jour: $e');
-    }
-  }
-
-  // Récupérer les menus pour une période donnée
-  Future<List<Menu>> getMenusForDateRange(
-      String userId, DateTime start, DateTime end) async {
-    try {
-      final startDate = _normalizeDate(start);
-      final endDate = _normalizeDate(end);
-
-      print('Recherche des menus entre $startDate et $endDate'); // Debug
-
-      QuerySnapshot querySnapshot = await _menusCollection
-          .where('userId', isEqualTo: userId)
-          .where('normalizedDate', isGreaterThanOrEqualTo: startDate)
-          .where('normalizedDate', isLessThanOrEqualTo: endDate)
-          .get();
-
-      return querySnapshot.docs
-          .map((doc) => Menu.fromJson(doc.data() as Map<String, dynamic>))
-          .toList();
-    } catch (e) {
-      print('Erreur dans getMenusForDateRange: $e');
-      throw Exception('Erreur lors de la récupération des menus par date: $e');
-    }
-  }
-
-  // Récupérer les menus pour un mois spécifique
-  Future<List<Menu>> getMenusForMonth(
-      String userId, int year, int month) async {
-    try {
-      DateTime startDate = DateTime(year, month, 1);
-      DateTime endDate = DateTime(year, month + 1, 0);
-
-      return await getMenusForDateRange(userId, startDate, endDate);
-    } catch (e) {
-      throw Exception('Erreur lors de la récupération des menus du mois: $e');
     }
   }
 }
