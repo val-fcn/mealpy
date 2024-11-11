@@ -1,6 +1,10 @@
 //import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+
+import '../models/menu.dart';
+import '../services/menu_service.dart';
 
 class PlanningList extends StatefulWidget {
   const PlanningList({super.key});
@@ -10,12 +14,19 @@ class PlanningList extends StatefulWidget {
 }
 
 class _PlanningListState extends State<PlanningList> {
-  //String get _userId => FirebaseAuth.instance.currentUser!.uid;
+  String get _userId => FirebaseAuth.instance.currentUser!.uid;
   DateTime selectedDay = DateTime.now();
+  List<Menu> menus = [];
+
   @override
   void initState() {
     super.initState();
     selectedDay = DateTime.now();
+    MenuService().getAllMenus(_userId).then((value) {
+      setState(() {
+        menus = value;
+      });
+    });
   }
 
   @override
@@ -23,6 +34,8 @@ class _PlanningListState extends State<PlanningList> {
     return Column(
       children: [
         _dateSlider(),
+        const SizedBox(height: 16),
+        _menuList(),
       ],
     );
   }
@@ -50,6 +63,29 @@ class _PlanningListState extends State<PlanningList> {
             this.selectedDay = selectedDay;
           },
         );
+      },
+    );
+  }
+
+  Widget _menuList() {
+    if (menus.isEmpty) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Text('Aucun menu trouvé pour cette date'),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {},
+            child: const Text('Ajouter un menu'),
+          ),
+        ],
+      );
+    }
+    return ListView.builder(
+      itemCount: menus.length,
+      itemBuilder: (context, index) {
+        return Text(menus[index].toString());
       },
     );
   }

@@ -47,17 +47,17 @@ class _HomeScreenState extends State<HomeScreen>
           items: const [
             BottomNavigationBarItem(
               icon: Icon(
-                Icons.home,
+                Icons.calendar_month,
                 color: AppTheme.primaryColor,
               ),
-              label: 'Home',
+              label: 'Mon planning',
             ),
             BottomNavigationBarItem(
               icon: Icon(
                 Icons.shopping_cart,
                 color: AppTheme.primaryColor,
               ),
-              label: 'Shopping list',
+              label: 'Mes courses',
             ),
           ],
         ),
