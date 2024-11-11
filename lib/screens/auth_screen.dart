@@ -25,15 +25,15 @@ class _AuthScreenState extends State<AuthScreen> {
           userEmailController.text,
           userPasswordController.text,
         );
-        await UserDataService().createUserData(
-          userId: FirebaseAuth.instance.currentUser!.uid,
-          email: userEmailController.text,
-          username: userNameController.text,
-        );
       } else {
         await AuthServices().signUpWithEmailAndPassword(
           userEmailController.text,
           userPasswordController.text,
+        );
+        await UserDataService().createUserData(
+          userId: FirebaseAuth.instance.currentUser?.uid,
+          email: userEmailController.text,
+          username: userNameController.text,
         );
       }
     }
