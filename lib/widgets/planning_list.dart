@@ -1,6 +1,7 @@
 //import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:mealpy/widgets/new_planning.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../models/menu.dart';
@@ -35,7 +36,9 @@ class _PlanningListState extends State<PlanningList> {
       children: [
         _dateSlider(),
         const SizedBox(height: 16),
-        _menuList(),
+        Expanded(
+          child: _menuList(),
+        ),
       ],
     );
   }
@@ -76,7 +79,14 @@ class _PlanningListState extends State<PlanningList> {
           const Text('Aucun menu trouvé pour cette date'),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NewPlanning(),
+                ),
+              );
+            },
             child: const Text('Ajouter un menu'),
           ),
         ],
